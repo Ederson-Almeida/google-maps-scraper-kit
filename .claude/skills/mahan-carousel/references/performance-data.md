@@ -122,7 +122,8 @@ Ranked by evidence strength, for picking carousel subjects:
 - Benchmark against the 5 tracked competitors showed his median at 2,955 vs a
   competitor median of 82,261 across 339 of their reels. Those accounts are
   likely much larger, so read this as directional, not as a like-for-like gap.
-- No brand asset file exists. Google Drive holds only 2019–2021 material from a
-  previous agency account, unrelated to @mahanaicoach. The Notion "Voice Guide"
-  page is an empty placeholder. The design spec in SKILL.md is therefore a
-  reasoned default, not his established look.
+- There is no brand asset *file* — Google Drive holds only 2019–2021 material from
+  a previous agency account, and the Notion "Voice Guide" page is an empty
+  placeholder. But the brand is not missing: it is built, in the **Carousel
+  Covers** and **Carousel Design Review** artifacts, and it is captured in
+  `references/design-system.md`. Use that, not a Drive search.

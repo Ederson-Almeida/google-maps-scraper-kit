@@ -135,32 +135,34 @@ keyword should be short, uppercase, and on-topic — it is a reach mechanism, si
 comments are a ranking signal, so it needs to be a word someone can type without
 thinking.
 
-## Design spec
+## Design
 
-He has no brand file, so unless he supplies one, output this spec with the copy
-and treat it as a default he can overrule — say so in one line rather than
-presenting it as settled.
+**He already has a design system. Read `references/design-system.md` before
+designing anything, and do not invent an alternative.** It was derived from his
+own 429K post and refined across 36 designs; a fresh palette would throw that away.
 
-- **Canvas** 1080 × 1350 (4:5). Takes the most vertical feed space Instagram
-  allows. For LinkedIn, the same slides export as a PDF document post.
-- **Ground** near-black `#0B0B0F`. Dark reads as terminal/developer, matches his
-  audience of people who actually run the thing, and keeps text contrast high on
-  a phone at arm's length.
-- **Text** off-white `#F5F5F0`. One accent only — `#00E08A`, a terminal green —
-  used for numbers and the CTA and nothing else. An accent that appears everywhere
-  stops meaning anything.
-- **Type** a heavy grotesque for headlines (Inter Tight / Archivo Black, falling
-  back to Helvetica), a monospace for tool names, repo paths, and figures
-  (JetBrains Mono, falling back to ui-monospace). The mono is doing real work: it
-  signals "this is a real thing you can install," which is the whole promise.
-- **Scale** cover headline ~96–120px, payload headline ~64px, body ~40px. If copy
-  won't fit at those sizes, the copy is too long — cut it rather than shrinking it.
-- **Margins** 96px all round. Keep the top-right ~180px clear on every slide.
-- **Rhythm** every payload slide uses the identical layout. Sameness is what makes
-  a carousel feel designed rather than assembled; the *content* varies, not the
-  furniture.
-- **Slide counter** small, bottom-left, `03 / 09`. It tells the reader how much
-  value is left, which measurably helps people keep swiping.
+The two-line version so you know what you're committing to: warm paper ground
+`#FAF7F2`, ink `#2A2A24`, coral `#EA9678` as a **fill only** (small type takes
+`#C9694A` — coral fails contrast at small sizes on this ground), Archivo +
+Archivo Black + JetBrains Mono, 1080×1350, with a `mahan ai.` header row and an
+`@mahanaicoach` footer row framing every slide.
+
+The structural idea worth holding onto is his, and it is the whole reason this is
+repeatable: **a cover is generated from a content record** — name, what it
+replaces, its price, star count, licence, screenshot. Five cover templates (Swap,
+Proof, Kill, Field, Counter) each consume that record differently. So don't start
+from "what should this look like." Start from what facts you actually hold, then
+pick the template those facts can fill. No star count means no Counter; no
+screenshot means no Proof.
+
+Body slides come from the eight inside-slide templates, which are lighter than the
+covers on purpose. A step-by-step deck is IN-5 Timeline; a stack is IN-8 Tile Grid;
+a before/after is IN-2 Split Compare.
+
+Deliver as a **Claude Design canvas** — one `.dc.html` artboard per slide plus
+`canvas.json` — so he can edit and export the slides himself rather than asking
+for a re-render. Put the verified/unverified fact split in `canvas.json`
+annotations, the way he does.
 
 ## Caption
 
@@ -199,9 +201,13 @@ someone can quote back at him. Every number on a slide should be checkable.
    promised but couldn't show — that's the payload.
 2. Check it against the dead categories in the data section. Flag in one line if
    it looks weak, then proceed with what he confirms.
-3. Gather the real units — the actual list, with real names and real numbers.
-   Where a fact is missing, ask one focused question rather than padding.
-4. Choose the slide count from how many units genuinely earn a slide.
+3. Build the **content record** for each unit before writing a word of copy:
+   name · what it replaces · that thing's price · star count · licence ·
+   screenshot. Check his Notion Resource Pages first (see below). A missing field
+   is not a gap to write around — it closes off templates, so know what you hold.
+   Where a fact is genuinely missing, ask one focused question rather than padding.
+4. Choose the slide count from how many units genuinely earn a slide, and the
+   cover template from what the record can fill.
 5. Draft cover and slide 2 first. If those two don't work, the rest is wasted —
    rewrite them before continuing.
 6. Fill the payload, put the weirdest item at n−1, close on one CTA.
