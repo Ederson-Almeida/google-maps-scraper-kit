@@ -132,7 +132,8 @@ google-maps-scraper-kit/
 ├── .gitignore
 ├── scripts/
 │   ├── scrape.sh        ← one-shot bash scraper (single keyword)
-│   └── scrape.py        ← Python scraper: single, batch, + auto-geocoding (stdlib only)
+│   ├── scrape.py        ← Python scraper: single, batch, + auto-geocoding (stdlib only)
+│   └── serve.py         ← simplified pt-BR web UI on :8765 — type a city, not coordinates
 ├── examples/
 │   ├── queries.example.json   ← reference job body + coordinate cheatsheet
 │   └── queries.example.txt    ← batch keyword list (one per line)

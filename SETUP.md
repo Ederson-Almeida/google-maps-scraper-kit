@@ -61,6 +61,15 @@ You can also open the built-in UI and API docs in a browser:
 - Web UI: **http://localhost:8080**
 - OpenAPI docs: **http://localhost:8080/api/docs**
 
+> 💡 **The built-in UI asks for latitude, longitude, zoom and radius** — fine for developers, rough for
+> everyone else. This kit ships a simplified alternative where you just type a city:
+> ```bash
+> python3 scripts/serve.py     # → http://localhost:8765
+> ```
+> It geocodes "São Paulo, Brasil" for you, runs the job, shows progress and gives you the CSV.
+> Interface text is Portuguese (pt-BR). Leave it running in a second terminal; the scraper container
+> must be up as well.
+
 ✅ If `curl` returns a JSON array, the system is live.
 
 > ⚠️ **Now that it's running — read this once.** This hits Google Maps for real. Light use is fine, but

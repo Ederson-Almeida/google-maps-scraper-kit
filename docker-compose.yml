@@ -6,9 +6,12 @@
 services:
   google-maps-scraper:
     # Pinned to a known-good release for reproducibility (bump deliberately).
+    # Do NOT go below v1.18.0: earlier tags pull Playwright 1.57.0, whose driver was
+    # removed from Microsoft's CDN — every job dies instantly with "could not install
+    # driver: 404" and then hangs in "working" forever. See upstream issue #302.
     # The published image is linux/amd64. On Apple Silicon (M1/M2/M3) it runs under
     # emulation; if it won't start, UNCOMMENT the 'platform' line below.
-    image: gosom/google-maps-scraper:v1.15.0
+    image: gosom/google-maps-scraper:v1.18.0
     # platform: linux/amd64
     container_name: gmaps-scraper
     restart: unless-stopped

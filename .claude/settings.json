@@ -14,7 +14,12 @@
       "Bash(./scripts/scrape.sh:*)",
       "Bash(bash scripts/scrape.sh:*)",
       "Bash(python3 scripts/scrape.py:*)",
-      "Bash(python scripts/scrape.py:*)"
+      "Bash(python scripts/scrape.py:*)",
+      "Bash(python3 scripts/serve.py:*)",
+      "Bash(python scripts/serve.py:*)",
+      "Bash(curl http://localhost:8765:*)",
+      "Bash(curl -s http://localhost:8765:*)",
+      "Bash(curl http://127.0.0.1:8765:*)"
     ],
     "deny": []
   }

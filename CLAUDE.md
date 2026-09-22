@@ -38,5 +38,10 @@ abusive use (surveilling individuals, spam). Full guidance is in the skill.
 If the container isn't running: `docker compose up -d`, then verify `curl http://localhost:8080/api/v1/jobs`.
 Full setup is in `SETUP.md`.
 
+## Two web UIs — don't mix them up
+- **`:8080`** — the scraper's own UI, baked into the Docker image. Asks for lat/lon/zoom/radius. Not editable.
+- **`:8765`** — this kit's simplified pt-BR UI (`python scripts/serve.py`). User types a city; it geocodes,
+  runs the job, shows progress, serves the CSV. Start it when a non-technical user wants to self-serve.
+
 ## Attribution
 This wraps `gosom/google-maps-scraper` (MIT, © Georgios Komninos). Keep `CREDITS.md` + `LICENSE` intact.

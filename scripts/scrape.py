@@ -18,6 +18,10 @@ Notes:
 import argparse, csv, io, json, os, re, sys, time, urllib.request, urllib.parse, urllib.error
 from concurrent.futures import ThreadPoolExecutor
 
+# Windows consoles default to cp1252 and crash on this script's ▶/✓/✗ output
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 BASE = os.environ.get("SCRAPER_BASE_URL", "http://localhost:8080")
 KEY = os.environ.get("SCRAPER_API_KEY", "")
 # Money-useful LEAD fields only — what you actually use to contact/qualify a lead.
@@ -36,8 +40,8 @@ def req(method, path, body=None):
         return resp.status, resp.read()
 
 
-def geocode(place):
-    """City/place name -> ('lat','lon') strings via Nominatim, or None."""
+def geocode_full(place):
+    """City/place name -> {'lat','lon','display_name'} via Nominatim, or None."""
     q = urllib.parse.urlencode({"format": "json", "limit": 1, "q": place})
     url = f"https://nominatim.openstreetmap.org/search?{q}"
     r = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -46,10 +50,46 @@ def geocode(place):
             hits = json.loads(resp.read())
         time.sleep(1)  # respect Nominatim's ~1 req/sec policy
         if hits:
-            return str(hits[0]["lat"]), str(hits[0]["lon"])
+            return {"lat": str(hits[0]["lat"]), "lon": str(hits[0]["lon"]),
+                    "display_name": hits[0].get("display_name", place)}
     except Exception as e:
         print(f"  (geocoding failed: {e})", file=sys.stderr)
     return None
+
+
+def geocode(place):
+    """City/place name -> ('lat','lon') strings via Nominatim, or None."""
+    g = geocode_full(place)
+    return (g["lat"], g["lon"]) if g else None
+
+
+def build_job_body(keywords, lat, lon, depth=5, email=True, max_time=600,
+                   lang="en", name="scrape-py"):
+    """The API's job contract. Wrong types or missing fields here -> HTTP 422."""
+    return {"name": name, "keywords": list(keywords), "lang": lang, "zoom": 15,
+            "lat": str(lat), "lon": str(lon), "fast_mode": False, "radius": 10000,
+            "depth": int(depth), "email": bool(email), "max_time": int(max_time)}
+
+
+def create_job(body):
+    """POST the job, return its id. Raises on HTTP error or a missing id."""
+    _, raw = req("POST", "/api/v1/jobs", body)
+    job_id = json.loads(raw).get("id")
+    if not job_id:
+        raise RuntimeError("no job id returned")
+    return job_id
+
+
+def job_status(job_id):
+    """Single status check (no sleeping, no printing): 'working' | 'ok' | 'failed'."""
+    _, raw = req("GET", f"/api/v1/jobs/{job_id}")
+    return json.loads(raw).get("Status")
+
+
+def download_rows(job_id):
+    """Download the finished job's CSV as a list of dicts (all raw columns)."""
+    _, raw = req("GET", f"/api/v1/jobs/{job_id}/download")
+    return list(csv.DictReader(io.StringIO(raw.decode("utf-8", "replace"))))
 
 
 def collect_keywords(a):
@@ -107,7 +147,7 @@ def _find_socials(html):
             break
     return out
 
-def enrich_socials(results, workers=8):
+def enrich_socials(results, workers=8, progress=None):
     """Add instagram/facebook/linkedin to each lead by scanning its website. Zero LLM tokens."""
     for r in results:                       # make sure every row has the keys
         r.setdefault("instagram", ""); r.setdefault("facebook", ""); r.setdefault("linkedin", "")
@@ -119,6 +159,8 @@ def enrich_socials(results, workers=8):
         for _ in ex.map(work, todo):
             done += 1
             print(f"\r  socials: {done}/{len(todo)} sites checked", end="", flush=True)
+            if progress:
+                progress(done, len(todo))
     print()
 
 
@@ -178,26 +220,22 @@ def main():
     except Exception as e:
         sys.exit(f"✗ Scraper not reachable at {BASE} — run 'docker compose up -d' first.\n  ({e})")
 
-    body = {"name": "scrape-py", "keywords": keywords, "lang": "en", "zoom": 15,
-            "lat": str(lat), "lon": str(lon), "fast_mode": False, "radius": 10000,
-            "depth": a.depth, "email": a.email, "max_time": a.max_time}
+    body = build_job_body(keywords, lat, lon, depth=a.depth, email=a.email,
+                          max_time=a.max_time)
     print(f"▶ Creating job: {len(keywords)} keyword(s) @ {lat},{lon} depth={a.depth} email={a.email}")
     for k in keywords:
         print(f"    • {k}")
     try:
-        _, raw = req("POST", "/api/v1/jobs", body)
+        job_id = create_job(body)
     except urllib.error.HTTPError as e:
         sys.exit(f"✗ Create failed: HTTP {e.code} — {e.read().decode()[:200]}")
-    job_id = json.loads(raw).get("id")
-    if not job_id:
-        sys.exit("✗ No job id returned.")
+    except RuntimeError as e:
+        sys.exit(f"✗ {e}.")
     print(f"  job id: {job_id}")
 
     print("▶ Polling…")
-    status = None
     for i in range(120):
-        _, raw = req("GET", f"/api/v1/jobs/{job_id}")
-        status = json.loads(raw).get("Status")
+        status = job_status(job_id)
         print(f"\r  status: {str(status):<10} (attempt {i + 1})", end="", flush=True)
         if status == "ok":
             print(); break
@@ -207,8 +245,7 @@ def main():
     else:
         sys.exit("\n✗ Timed out.")
 
-    _, raw = req("GET", f"/api/v1/jobs/{job_id}/download")
-    rows = list(csv.DictReader(io.StringIO(raw.decode("utf-8", "replace"))))
+    rows = download_rows(job_id)
     if a.full:
         fields = list(rows[0].keys()) if rows else LEAD
     elif a.fields:
